@@ -3,6 +3,7 @@ import { useServiceConfigs } from "@/hooks/use-service-data";
 import { NetdataPanel } from "@/components/panels/netdata-panel";
 import { UptimeKumaPanel } from "@/components/panels/uptimekuma-panel";
 import { BackrestPanel } from "@/components/panels/backrest-panel";
+import { UnifiPanel } from "@/components/panels/unifi-panel";
 import { Sun, Moon, Settings, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -14,7 +15,8 @@ export default function Dashboard() {
   const hasNetdata = configs?.some((c: any) => c.serviceType === "netdata" && c.enabled);
   const hasUptimeKuma = configs?.some((c: any) => c.serviceType === "uptimekuma" && c.enabled);
   const hasBackrest = configs?.some((c: any) => c.serviceType === "backrest" && c.enabled);
-  const hasAny = hasNetdata || hasUptimeKuma || hasBackrest;
+  const hasUnifi = configs?.some((c: any) => c.serviceType === "unifi" && c.enabled);
+  const hasAny = hasNetdata || hasUptimeKuma || hasBackrest || hasUnifi;
 
   return (
     <div className="min-h-screen bg-background">
@@ -49,6 +51,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             {hasNetdata && <NetdataPanel />}
             {hasUptimeKuma && <UptimeKumaPanel />}
+            {hasUnifi && <UnifiPanel />}
             {hasBackrest && <BackrestPanel />}
           </div>
         )}

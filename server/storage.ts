@@ -68,6 +68,7 @@ function seedFromEnv() {
     { type: "netdata", urlEnv: "NETDATA_URL" },
     { type: "uptimekuma", urlEnv: "UPTIMEKUMA_URL", apiKeyEnv: "UPTIMEKUMA_API_KEY" },
     { type: "backrest", urlEnv: "BACKREST_URL", userEnv: "BACKREST_USERNAME", passEnv: "BACKREST_PASSWORD" },
+    { type: "unifi", urlEnv: "UNIFI_URL", apiKeyEnv: "UNIFI_API_KEY" },
   ];
 
   for (const s of seeds) {

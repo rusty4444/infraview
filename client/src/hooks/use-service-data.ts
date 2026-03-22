@@ -71,6 +71,32 @@ export function useBackrestOperations(planId?: string) {
   });
 }
 
+// ─── UniFi Hooks ─────────────────────────────────
+
+export function useUnifiHealth() {
+  return useQuery({
+    queryKey: ["/api/unifi/health"],
+    refetchInterval: 30000,
+    retry: 1,
+  });
+}
+
+export function useUnifiDevices() {
+  return useQuery({
+    queryKey: ["/api/unifi/devices"],
+    refetchInterval: 30000,
+    retry: 1,
+  });
+}
+
+export function useUnifiClients() {
+  return useQuery({
+    queryKey: ["/api/unifi/clients"],
+    refetchInterval: 30000,
+    retry: 1,
+  });
+}
+
 // ─── Service Configs ─────────────────────────────
 
 export function useServiceConfigs() {

@@ -17,6 +17,7 @@ import {
   Server,
   Globe,
   Archive,
+  Wifi,
   Plus,
   Trash2,
   Save,
@@ -31,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type ServiceType = "netdata" | "uptimekuma" | "backrest";
+type ServiceType = "netdata" | "uptimekuma" | "backrest" | "unifi";
 
 const SERVICE_INFO: Record<ServiceType, { icon: any; label: string; placeholder: string; description: string }> = {
   netdata: {
@@ -51,6 +52,12 @@ const SERVICE_INFO: Record<ServiceType, { icon: any; label: string; placeholder:
     label: "Backrest",
     placeholder: "http://192.168.1.100:9898",
     description: "Restic backup orchestrator. Connects via the gRPC-Web API.",
+  },
+  unifi: {
+    icon: Wifi,
+    label: "UniFi",
+    placeholder: "https://192.168.1.1",
+    description: "UniFi Network controller. Uses the local API with an API key.",
   },
 };
 
@@ -203,6 +210,7 @@ export default function Settings() {
                     <SelectItem value="netdata">Netdata</SelectItem>
                     <SelectItem value="uptimekuma">Uptime Kuma</SelectItem>
                     <SelectItem value="backrest">Backrest</SelectItem>
+                    <SelectItem value="unifi">UniFi</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1.5">{SERVICE_INFO[newType].description}</p>
@@ -217,6 +225,19 @@ export default function Settings() {
                   data-testid="input-url"
                 />
               </div>
+
+              {newType === "unifi" && (
+                <div>
+                  <Label className="text-xs mb-1.5 block">API Key</Label>
+                  <Input
+                    type="password"
+                    placeholder="Your UniFi API key"
+                    value={newApiKey}
+                    onChange={(e) => setNewApiKey(e.target.value)}
+                    data-testid="input-unifi-apikey"
+                  />
+                </div>
+              )}
 
               {(newType === "uptimekuma" || newType === "backrest") && (
                 <div className="grid grid-cols-2 gap-3">

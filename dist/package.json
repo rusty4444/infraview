@@ -1,7 +1,0 @@
-{
-  "name": "infraview-runtime",
-  "private": true,
-  "dependencies": {
-    "better-sqlite3": "11.9.1"
-  }
-}

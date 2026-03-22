@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertServiceConfigSchema } from "@shared/schema";
 
+// UniFi controllers use self-signed certs
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -11,7 +14,6 @@ export async function registerRoutes(
   // ─── Service Configs CRUD ───────────────────────
   app.get("/api/configs", (_req, res) => {
     const configs = storage.getServiceConfigs();
-    // mask sensitive fields
     const safe = configs.map(c => ({
       ...c,
       apiKey: c.apiKey ? "••••••" : null,
@@ -107,7 +109,6 @@ export async function registerRoutes(
       }
       const resp = await fetch(`${config.url}/metrics`, { headers });
       const text = await resp.text();
-      // Parse prometheus-format metrics
       const monitors: any[] = [];
       const lines = text.split("\n");
       const statusMap = new Map<string, any>();
@@ -160,16 +161,26 @@ export async function registerRoutes(
     try {
       const config = storage.getServiceConfigByType("backrest");
       if (!config || !config.enabled) return res.status(404).json({ error: "Backrest not configured" });
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Connect-Protocol-Version": "1",
+      };
       if (config.username && config.password) {
         headers["Authorization"] = "Basic " + Buffer.from(`${config.username}:${config.password}`).toString("base64");
       }
-      // Backrest uses gRPC-Web / Connect protocol
-      const resp = await fetch(`${config.url}/v1/GetConfig`, {
+      // Try Connect protocol first, fall back to plain REST
+      let resp = await fetch(`${config.url}/v1/GetConfig`, {
         method: "POST",
         headers,
         body: "{}",
       });
+      if (!resp.ok) {
+        // Try the alternative endpoint pattern
+        resp = await fetch(`${config.url}/api/v1/config`, {
+          method: "GET",
+          headers: { Authorization: headers["Authorization"] || "" },
+        });
+      }
       const data = await resp.json();
       res.json(data);
     } catch (e: any) {
@@ -181,7 +192,10 @@ export async function registerRoutes(
     try {
       const config = storage.getServiceConfigByType("backrest");
       if (!config || !config.enabled) return res.status(404).json({ error: "Backrest not configured" });
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Connect-Protocol-Version": "1",
+      };
       if (config.username && config.password) {
         headers["Authorization"] = "Basic " + Buffer.from(`${config.username}:${config.password}`).toString("base64");
       }
@@ -190,6 +204,66 @@ export async function registerRoutes(
         headers,
         body: JSON.stringify({ selector: { planId: req.query.planId || undefined }, lastN: "50" }),
       });
+      const data = await resp.json();
+      res.json(data);
+    } catch (e: any) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
+  // ─── UniFi Proxy ───────────────────────────────
+  app.get("/api/unifi/health", async (_req, res) => {
+    try {
+      const config = storage.getServiceConfigByType("unifi");
+      if (!config || !config.enabled) return res.status(404).json({ error: "UniFi not configured" });
+      const headers: Record<string, string> = { "X-API-KEY": config.apiKey || "" };
+      const resp = await fetch(`https://${new URL(config.url).host}/proxy/network/api/s/default/stat/health`, {
+        headers,
+        // UniFi uses self-signed certs
+        ...(typeof process !== 'undefined' ? {} : {}),
+      });
+      const data = await resp.json();
+      res.json(data);
+    } catch (e: any) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
+  app.get("/api/unifi/devices", async (_req, res) => {
+    try {
+      const config = storage.getServiceConfigByType("unifi");
+      if (!config || !config.enabled) return res.status(404).json({ error: "UniFi not configured" });
+      const baseUrl = config.url.replace(/\/$/, "");
+      const headers: Record<string, string> = { "X-API-KEY": config.apiKey || "" };
+      const resp = await fetch(`${baseUrl}/proxy/network/api/s/default/stat/device`, { headers });
+      const data = await resp.json();
+      res.json(data);
+    } catch (e: any) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
+  app.get("/api/unifi/clients", async (_req, res) => {
+    try {
+      const config = storage.getServiceConfigByType("unifi");
+      if (!config || !config.enabled) return res.status(404).json({ error: "UniFi not configured" });
+      const baseUrl = config.url.replace(/\/$/, "");
+      const headers: Record<string, string> = { "X-API-KEY": config.apiKey || "" };
+      const resp = await fetch(`${baseUrl}/proxy/network/api/s/default/stat/sta`, { headers });
+      const data = await resp.json();
+      res.json(data);
+    } catch (e: any) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
+  app.get("/api/unifi/sysinfo", async (_req, res) => {
+    try {
+      const config = storage.getServiceConfigByType("unifi");
+      if (!config || !config.enabled) return res.status(404).json({ error: "UniFi not configured" });
+      const baseUrl = config.url.replace(/\/$/, "");
+      const headers: Record<string, string> = { "X-API-KEY": config.apiKey || "" };
+      const resp = await fetch(`${baseUrl}/proxy/network/api/s/default/stat/sysinfo`, { headers });
       const data = await resp.json();
       res.json(data);
     } catch (e: any) {
