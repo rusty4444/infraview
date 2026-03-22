@@ -6,7 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --maxsockets 5
 
 COPY . .
-RUN npx tsx script/build.ts
+RUN ./node_modules/.bin/tsx script/build.ts
 
 # ─── Runtime Stage (Alpine for small image) ──────
 FROM node:20-alpine AS runtime
