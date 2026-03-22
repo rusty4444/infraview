@@ -1,12 +1,7 @@
-FROM node:20
+FROM node:20-slim
 
 WORKDIR /app
-
 COPY dist ./dist
-
-WORKDIR /app/dist
-RUN npm install
-WORKDIR /app
 
 VOLUME /app/data
 ENV DATABASE_PATH=/app/data/infraview.db
