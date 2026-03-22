@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  infraview:
+    build: .
+    container_name: infraview
+    ports:
+      - "3080:5000"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    # If your monitored services run on the Docker host, uncomment:
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
