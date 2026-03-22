@@ -1,11 +1,11 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
 COPY dist ./dist
 COPY package.json package-lock.json ./
 
-RUN npm ci --omit=dev --maxsockets 5 && npm cache clean --force
+RUN npm install --omit=dev && rm -rf /root/.npm
 
 VOLUME /app/data
 ENV DATABASE_PATH=/app/data/infraview.db
