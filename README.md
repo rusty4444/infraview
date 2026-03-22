@@ -24,11 +24,14 @@ docker compose up -d
 
 Open `http://localhost:3080` and your services should appear on the dashboard.
 
+The repo ships with a pre-built `dist/` directory, so no compilation is needed during `docker build` — it just copies the files and installs runtime dependencies. Builds are fast even on low-powered hardware like NAS devices.
+
 ## Quick Start without Docker
 
+The pre-built output is included in the repo, so you can run directly:
+
 ```bash
-npm install
-npm run build
+npm install --omit=dev
 NODE_ENV=production node dist/index.cjs
 ```
 
@@ -88,7 +91,11 @@ If services are on the same Docker network, use container names directly.
 - **Database**: SQLite for service configuration storage
 - **Data flow**: Browser → Express proxy → Your services' APIs
 
+The repo includes pre-built output in `dist/` so Docker builds don't require any compilation tooling. The Dockerfile simply copies the built files and installs production Node.js dependencies.
+
 ## Development
+
+To make changes to the source and rebuild:
 
 ```bash
 npm install
@@ -96,6 +103,14 @@ npm run dev
 ```
 
 Dev server runs on port 5000 with hot reload.
+
+To rebuild the production bundle after making changes:
+
+```bash
+npm run build
+```
+
+This regenerates the `dist/` directory. Commit the updated `dist/` if you want your Docker builds to pick up the changes.
 
 ## License
 
