@@ -120,6 +120,8 @@ cd dist && npm install && cd ..
 
 This regenerates the `dist/` directory. Commit the updated `dist/` (including `dist/node_modules`) if you want your Docker builds to pick up the changes.
 
+This project was developed with the assistance of AI tools.
+
 ## License
 
 MIT
