@@ -1,10 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import type { ServiceConfig } from "@shared/schema";
+
+// These hooks rely on the QueryClient's default queryFn (see lib/queryClient.ts),
+// which fetches queryKey.join("/") and returns the parsed JSON body. With the
+// locked @tanstack/react-query (5.94.5), useQuery without an inline queryFn
+// infers data as unknown/{}, so each hook declares its response shape
+// explicitly. Runtime behaviour is unchanged.
 
 // ─── Netdata Hooks ───────────────────────────────
 
+// Netdata /api/v1/info passthrough: dynamic JSON object (hostname, version, …).
 export function useNetdataInfo() {
-  return useQuery({
+  return useQuery<Record<string, any>>({
     queryKey: ["/api/netdata/info"],
     refetchInterval: 30000,
     retry: 1,
@@ -30,8 +38,9 @@ export function useNetdataChartData(chart: string, after = -600, points = 60) {
   });
 }
 
+// Netdata /api/v1/alarms?active passthrough: map of alarm entries under `alarms`.
 export function useNetdataAlarms() {
-  return useQuery({
+  return useQuery<{ alarms?: Record<string, any> }>({
     queryKey: ["/api/netdata/alarms"],
     refetchInterval: 15000,
     retry: 1,
@@ -100,7 +109,7 @@ export function useUnifiClients() {
 // ─── Service Configs ─────────────────────────────
 
 export function useServiceConfigs() {
-  return useQuery({
+  return useQuery<ServiceConfig[]>({
     queryKey: ["/api/configs"],
     staleTime: 5000,
   });
